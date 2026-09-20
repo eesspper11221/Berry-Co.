@@ -64,7 +64,7 @@ export default function ProductAccordions({
           <span className="text-base font-bold">{openSections.desc ? "−" : "+"}</span>
         </button>
         {openSections.desc && (
-          <div className="mt-2 w-full rounded-2xl bg-cream p-4 text-xs font-semibold text-dark/80 leading-relaxed break-words">
+          <div className="mt-2 w-full rounded-2xl bg-cream p-4 text-xs font-semibold text-dark/80 leading-relaxed wrap-break-word">
             {description ?? "Detailed product description goes here..."}
           </div>
         )}
@@ -88,7 +88,7 @@ export default function ProductAccordions({
                   <p className="font-extrabold text-dark/60 text-[11px] uppercase tracking-wide">
                     {row.label}
                   </p>
-                  <p className="font-bold text-dark mt-0.5 text-sm leading-relaxed whitespace-pre-line break-words">
+                  <p className="font-bold text-dark mt-0.5 text-sm leading-relaxed whitespace-pre-line wrap-break-word">
                     {row.value}
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export default function ProductAccordions({
                       <p className="font-extrabold text-brand">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</p>
                       <p className="text-[11px] text-dark/50">{review.reviewer_name}</p>
                     </div>
-                    <p className="mt-1 text-dark/70 break-words">{review.comment}</p>
+                    <p className="mt-1 text-dark/70 wrap-break-word">{review.comment}</p>
                   </article>
                 ))}
               </div>

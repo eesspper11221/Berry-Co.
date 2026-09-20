@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getPriceBreakdown } from "@/lib/price";
 
 export interface Item {
   id?: string | number;
@@ -7,6 +8,8 @@ export interface Item {
   description?: string;
   shortDescription?: string;
   price?: string | number;
+  salePercentage?: number | null;
+  sale_percentage?: number | null;
   imageUrl?: string;
   href?: string;
   tags?: string[];
@@ -25,15 +28,25 @@ export default function ItemCard({ item, className = "" }: ItemCardProps) {
     company,
     name = "Item Name",
     shortDescription,
-    price = "₱0",
+    price = 0,
     imageUrl,
     href,
     tags = [],
     status,
   } = item;
 
+  // Handles both camelCase and snake_case props from database queries
+  const activeSalePercentage = item.salePercentage ?? item.sale_percentage;
+
+  // 🏷️ Dynamic Price Calculation
+  const {
+    hasSale,
+    formattedBasePrice,
+    formattedFinalPrice,
+    salePercentage: discountPercent,
+  } = getPriceBreakdown(price, activeSalePercentage);
+
   const safeName = name?.trim() || "Item Name";
-  // Strictly checks shortDescription ONLY. If missing, renders nothing.
   const cardText = shortDescription?.trim();
   const targetHref = href ?? (id !== undefined ? `/products/${id}` : undefined);
   
@@ -67,10 +80,19 @@ export default function ItemCard({ item, className = "" }: ItemCardProps) {
           </div>
         )}
 
+        {/* 🏷️ Top-Right Sale Tag Overlay */}
+        {hasSale && !isOutOfStock && (
+          <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
+            <span className="rounded-full bg-brand px-2.5 py-0.5 text-[10px] font-black text-white shadow-xs">
+              -{discountPercent}%
+            </span>
+          </div>
+        )}
+
         {/* Out of Stock Overlay */}
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
-            <span className="rounded-full bg-red-600 px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md">
+            <span className="rounded-full bg-brand px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-md">
               Out of Stock
             </span>
           </div>
@@ -86,7 +108,6 @@ export default function ItemCard({ item, className = "" }: ItemCardProps) {
             {safeName}
           </p>
 
-          {/* Rendered ONLY if shortDescription is explicitly populated */}
           {cardText && (
             <p className="line-clamp-2 text-[11px] font-semibold leading-relaxed text-dark/70">
               {cardText}
@@ -94,8 +115,23 @@ export default function ItemCard({ item, className = "" }: ItemCardProps) {
           )}
         </div>
 
-        {/* Bottom Content: Price pinned to bottom */}
-        <p className="mt-3 pt-1 text-sm font-extrabold text-brand">{price}</p>
+        {/* 🏷️ Bottom Content: Dynamic Price Rendering */}
+        <div className="mt-3 pt-1">
+          {hasSale ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-extrabold text-brand">
+                {formattedFinalPrice}
+              </span>
+              <span className="text-xs font-bold text-dark/40 line-through">
+                {formattedBasePrice}
+              </span>
+            </div>
+          ) : (
+            <span className="text-sm font-extrabold text-brand">
+              {formattedBasePrice}
+            </span>
+          )}
+        </div>
       </div>
     </article>
   );

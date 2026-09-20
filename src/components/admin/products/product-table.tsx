@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useTransition } from 'react'
 import { deleteProduct } from '@/lib/actions/action-products'
+import { getPriceBreakdown } from '@/lib/price'
 import type { ProductWithCategory } from '@/types/database'
 
 const statusStyles: Record<string, string> = {
@@ -60,62 +61,92 @@ export default function ProductTable({
                 </td>
               </tr>
             )}
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-stone-50">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    {product.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={product.image_url}
-                        alt=""
-                        className="h-9 w-9 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="h-9 w-9 rounded-lg bg-stone-100" />
-                    )}
-                    <div>
-                      <p className="font-medium text-stone-900">{product.name}</p>
-                      <p className="text-xs text-stone-400">{product.sku}</p>
+            {products.map((product) => {
+              const {
+                hasSale,
+                formattedBasePrice,
+                formattedFinalPrice,
+                salePercentage,
+              } = getPriceBreakdown(product.price, product.sale_percentage)
+
+              return (
+                <tr key={product.id} className="hover:bg-stone-50">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      {product.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={product.image_url}
+                          alt=""
+                          className="h-9 w-9 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="h-9 w-9 rounded-lg bg-stone-100" />
+                      )}
+                      <div>
+                        <p className="font-medium text-stone-900">{product.name}</p>
+                        <p className="text-xs text-stone-400">{product.sku}</p>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-stone-600">
-                  {product.subcategory_name ?? product.category_name ?? '—'}
-                </td>
-                <td className="px-4 py-3 text-stone-900">
-                  ₱{Number(product.price).toLocaleString()}
-                </td>
-                <td className="px-4 py-3 text-stone-900">{product.stock}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                      statusStyles[product.status]
-                    }`}
-                  >
-                    {statusLabels[product.status]}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link
-                      href={`/admin/products/${product.id}`}
-                      className="rounded-lg px-2.5 py-1 text-xs font-medium text-stone-600 hover:bg-stone-100"
+                  </td>
+                  <td className="px-4 py-3 text-stone-600">
+                    {product.subcategory_name ?? product.category_name ?? '—'}
+                  </td>
+
+                  {/* 🏷️ Dynamic Price Cell */}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {hasSale ? (
+                      <div className="flex flex-col items-start gap-0.5">
+                        <span className="font-semibold text-stone-900">
+                          {formattedFinalPrice}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span className="text-stone-400 line-through">
+                            {formattedBasePrice}
+                          </span>
+                          <span className="rounded bg-red-50 border border-red-100 px-1 py-0.5 text-[10px] font-bold text-red-600">
+                            -{salePercentage}%
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-stone-900 font-medium">
+                        {formattedBasePrice}
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="px-4 py-3 text-stone-900">{product.stock}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                        statusStyles[product.status]
+                      }`}
                     >
-                      Edit
-                    </Link>
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => handleDelete(product.id, product.name)}
-                      className="rounded-lg px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      {statusLabels[product.status]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-2">
+                      <Link
+                        href={`/admin/products/${product.id}`}
+                        className="rounded-lg px-2.5 py-1 text-xs font-medium text-stone-600 hover:bg-stone-100"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => handleDelete(product.id, product.name)}
+                        className="rounded-lg px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getPriceBreakdown } from "@/lib/price";
 
 type BuyBoxProps = {
   productId: string;
   sku?: string;
   stock?: number;
   name: string;
-  price: string;
+  price: number | string;
+  salePercentage?: number | null;
   status: "In Stock" | "Pre-orders Open" | "Out of Stock" | "Sold Out" | string;
-  tag: string;
+  tag?: string;
   preorderPeriod?: string;
   initialInWishlist?: boolean;
 };
@@ -21,8 +23,8 @@ export default function ProductBuyBox({
   stock,
   name,
   price,
+  salePercentage,
   status,
-  tag,
   preorderPeriod,
   initialInWishlist = false,
 }: BuyBoxProps) {
@@ -31,6 +33,14 @@ export default function ProductBuyBox({
   const [added, setAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [wishlistUpdating, setWishlistUpdating] = useState(false);
+
+  // 🏷️ Dynamic Price Breakdown Calculation
+  const {
+    hasSale,
+    formattedBasePrice,
+    formattedFinalPrice,
+    salePercentage: discountPercent,
+  } = getPriceBreakdown(price, salePercentage);
 
   const handleCartClick = async () => {
     if (isOutOfStock) return;
@@ -104,7 +114,7 @@ export default function ProductBuyBox({
   const getStatusColor = () => {
     if (isOutOfStock) return "text-red-600";
     if (isPreOrder) return "text-brand";
-    return "text-emerald-700"; // In Stock
+    return "text-emerald-700";
   };
 
   return (
@@ -120,9 +130,26 @@ export default function ProductBuyBox({
         <h1 className="text-3xl font-black leading-tight tracking-tight text-dark sm:text-4xl">{name}</h1>
       </div>
 
-      {/* Price, Status & Stock */}
-      <div className="text-right space-y-0.5">
-        <p className="text-2xl font-black text-dark">{price}</p>
+      {/* 🏷️ Price, Status & Stock Breakdown */}
+      <div className="text-right space-y-1">
+        {hasSale ? (
+          <div className="flex flex-col items-end gap-0.5">
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 text-[11px] font-black text-brand">
+                -{discountPercent}% OFF
+              </span>
+              <span className="text-sm font-bold text-dark/40 line-through">
+                {formattedBasePrice}
+              </span>
+            </div>
+            <p className="text-3xl font-black text-brand">
+              {formattedFinalPrice}
+            </p>
+          </div>
+        ) : (
+          <p className="text-2xl font-black text-dark">{formattedBasePrice}</p>
+        )}
+
         <p className={`text-xs font-bold ${getStatusColor()}`}>
           {status}
         </p>
@@ -166,7 +193,7 @@ export default function ProductBuyBox({
             : "Add to Cart"}
         </button>
 
-        {/* Wishlist / Restock Alert Button */}
+        {/* Wishlist Button */}
         <button
           type="button"
           onClick={handleWishlistToggle}

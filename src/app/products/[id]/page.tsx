@@ -29,7 +29,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-background p-4 sm:p-8 text-dark">
       <div className="mx-auto max-w-6xl">
         
-        {/* Breadcrumb Hierarchy: Products > Category > Brand > Series > Item */}
+        {/* Breadcrumb Hierarchy */}
         <div className="breadcrumbs mb-4 text-xs font-bold text-dark/60">
           <ul>
             <li>
@@ -61,7 +61,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 {product.sku}
               </Link>
             </li>
-            {/* Current Active Item */}
             <li className="font-black text-dark">
               {product.name}
             </li>
@@ -71,30 +70,31 @@ export default async function ProductDetailPage({ params }: PageProps) {
         {/* Main Grid Content */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
           
-          {/* 1️⃣ Gallery Section (Mobile: 1st | Desktop: Top-Left) */}
+          {/* Gallery Section */}
           <div className="lg:col-span-8 lg:col-start-1 lg:row-start-1">
             <ProductGallery
-            name={product.name}
-            imageUrl={product.image_url}
-            images={product.image_urls}
+              name={product.name}
+              imageUrl={product.image_url}
+              images={product.image_urls}
             />
           </div>
 
-          {/* 2️⃣ Sticky Buy Box Panel (Mobile: 2nd | Desktop: Top-Right) */}
+          {/* 🏷️ Sticky Buy Box Panel with Sale Props */}
           <div className="lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-24">
             <ProductBuyBox
               productId={product.id}
               sku={product.sku}
               stock={product.stock}
               name={product.name}
-              price={`₱${Number(product.price).toLocaleString('en-PH')}`}
+              price={product.price}
+              salePercentage={product.sale_percentage}
               status={status}
               tag={product.category_name ?? 'Berry Co.'}
               initialInWishlist={initialInWishlist}
             />
           </div>
 
-          {/* 3️⃣ Accordions Card (Mobile: 3rd | Desktop: Bottom-Left) */}
+          {/* Accordions Card */}
           <div className="lg:col-span-8 lg:col-start-1 lg:row-start-2 rounded-4xl bg-[#F4ECE1] p-6 shadow-xs border border-dark/10">
             <ProductAccordions
               productId={product.id}

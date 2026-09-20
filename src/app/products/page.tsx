@@ -12,6 +12,7 @@ type CatalogProduct = {
   name: string;
   sku: string;
   price: number;
+  sale_percentage?: number | null;
   image_url: string | null;
   description: string | null;
   short_description: string | null;
@@ -134,14 +135,17 @@ function ProductsContent() {
       const price = Number(item.price) || 0;
       const matchesPrice = price >= min && price <= max;
 
-      // Availability Filter Logic
+      // 🏷️ Enhanced Availability Filter Logic (checks sale percentage OR tags)
       let matchesAvailability = true;
       if (hasAvailabilityFilter) {
         const matchesStock = isInStock && item.status !== 'out_of_stock';
         const matchesPreOrderTag = isPreOrder && (item.tags ?? []).some((t) => t.toLowerCase() === 'pre-order');
-        const matchesSaleTag = isOnSale && (item.tags ?? []).some((t) => ['sale', 'on sale'].includes(t.toLowerCase()));
+        const matchesSale = isOnSale && (
+          (typeof item.sale_percentage === 'number' && item.sale_percentage > 0) ||
+          (item.tags ?? []).some((t) => ['sale', 'on sale'].includes(t.toLowerCase()))
+        );
 
-        matchesAvailability = matchesStock || matchesPreOrderTag || matchesSaleTag;
+        matchesAvailability = matchesStock || matchesPreOrderTag || matchesSale;
       }
 
       return matchesQuery && matchesCategory && matchesSeries && matchesBrand && matchesTags && matchesPrice && matchesAvailability;
@@ -191,7 +195,6 @@ function ProductsContent() {
           <SearchBar value={query} onChange={setQuery} />
         </div>
 
-        {/* 📱 Mobile Toggle Button */}
         <button
           type="button"
           onClick={() => setIsMobileFilterOpen((prev) => !prev)}
@@ -211,7 +214,7 @@ function ProductsContent() {
 
       <div className="flex flex-col xl:flex-row gap-6">
         
-        {/* 🎛️ Sidebar Filter Panel */}
+        {/* Sidebar Filter Panel */}
         <aside
           className={`sidebar-panel xl:w-80 xl:order-2 xl:block ${
             isMobileFilterOpen ? "block" : "hidden"
@@ -231,7 +234,6 @@ function ProductsContent() {
           </div>
 
           <div className="space-y-4">
-            {/* 1️⃣ Category Filter */}
             <FilterDropdown
               label="Category"
               options={filterOptions.categories}
@@ -241,7 +243,6 @@ function ProductsContent() {
               onSelectChange={setSelectedCategory}
             />
 
-            {/* 2️⃣ Series Filter */}
             <FilterDropdown
               label="Series"
               options={filterOptions.series}
@@ -251,7 +252,6 @@ function ProductsContent() {
               onSelectChange={setSelectedSeries}
             />
 
-            {/* 3️⃣ Tags Filter */}
             <FilterDropdown
               label="Tags"
               options={filterOptions.tags}
@@ -261,7 +261,6 @@ function ProductsContent() {
               onSelectChange={setSelectedTags}
             />
 
-            {/* 4️⃣ Brand Filter */}
             <FilterDropdown
               label="Brand"
               options={filterOptions.brands}
@@ -271,7 +270,6 @@ function ProductsContent() {
               onSelectChange={setSelectedBrand}
             />
 
-            {/* Availability Checkboxes */}
             <div className="space-y-2 text-xs font-semibold text-dark">
               <p className="text-right font-bold">Availability</p>
               <div className="flex flex-wrap justify-end gap-3">
@@ -305,7 +303,6 @@ function ProductsContent() {
               </div>
             </div>
 
-            {/* Price Range Slider */}
             <PriceRangeSlider
               minValue={minPrice}
               maxValue={maxPrice}
@@ -315,7 +312,6 @@ function ProductsContent() {
               onSliderChange={setPriceValue}
             />
 
-            {/* Mobile Apply Button */}
             <button
               type="button"
               onClick={() => setIsMobileFilterOpen(false)}
@@ -338,8 +334,7 @@ function ProductsContent() {
                     onClick={() => removeCategory(cat)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    {cat}
-                    <span>×</span>
+                    {cat} <span>×</span>
                   </button>
                 ))}
 
@@ -350,8 +345,7 @@ function ProductsContent() {
                     onClick={() => removeSeries(series)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    {series}
-                    <span>×</span>
+                    {series} <span>×</span>
                   </button>
                 ))}
 
@@ -362,8 +356,7 @@ function ProductsContent() {
                     onClick={() => removeBrand(brand)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    {brand}
-                    <span>×</span>
+                    {brand} <span>×</span>
                   </button>
                 ))}
 
@@ -374,8 +367,7 @@ function ProductsContent() {
                     onClick={() => removeTag(tag)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    {tag}
-                    <span>×</span>
+                    {tag} <span>×</span>
                   </button>
                 ))}
 
@@ -385,8 +377,7 @@ function ProductsContent() {
                     onClick={() => setIsInStock(false)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    In-Stock
-                    <span>×</span>
+                    In-Stock <span>×</span>
                   </button>
                 )}
 
@@ -396,8 +387,7 @@ function ProductsContent() {
                     onClick={() => setIsPreOrder(false)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    Pre-Order
-                    <span>×</span>
+                    Pre-Order <span>×</span>
                   </button>
                 )}
 
@@ -407,8 +397,7 @@ function ProductsContent() {
                     onClick={() => setIsOnSale(false)}
                     className="inline-flex items-center gap-2 rounded-full bg-cream px-3 py-1 text-xs font-bold text-dark cursor-pointer hover:bg-brand hover:text-white transition-colors"
                   >
-                    On Sale
-                    <span>×</span>
+                    On Sale <span>×</span>
                   </button>
                 )}
 
@@ -444,6 +433,8 @@ function ProductsContent() {
           {!loading && !loadError && filteredProducts.length === 0 && (
             <p className="py-12 text-center text-sm font-semibold text-dark/60">No products found.</p>
           )}
+
+          {/* 🏷️ ItemCard Mapping with salePercentage */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {filteredProducts.map((item) => (
               <ItemCard
@@ -454,7 +445,8 @@ function ProductsContent() {
                   name: item.name,
                   description: item.description ?? undefined,
                   shortDescription: item.short_description ?? undefined,
-                  price: `₱${Number(item.price).toLocaleString('en-PH')}`,
+                  price: item.price,
+                  salePercentage: item.sale_percentage,
                   imageUrl: item.image_url ?? undefined,
                   category: item.category_name ?? undefined,
                   status: item.status,

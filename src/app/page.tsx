@@ -6,8 +6,6 @@ import { getProducts } from "@/lib/data/data-products";
 export default async function HomePage() {
   const { products } = await getProducts({ page: 1, pageSize: 500 });
 
-
-  
   return (
     <div className="flex-1 flex flex-col">
       <Hero />
@@ -20,25 +18,27 @@ export default async function HomePage() {
               Products
             </h2>
 
+            {/* 🏷️ ItemCard Grid with salePercentage */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
               {products.map((item) => (
-                  <ItemCard
+                <ItemCard
                   key={item.id}
                   item={{
-                        id: item.id,
-                        company: item.brand_name ?? "Berry Co.",
-                        name: item.name,
-                        description: item.description ?? undefined,
-                        shortDescription: item.short_description ?? undefined,
-                        price: `₱${Number(item.price).toLocaleString('en-PH')}`,
-                        imageUrl: item.image_url ?? undefined,
-                        category: item.category_name ?? undefined,
-                        status: item.status,
-                        tags: item.tags ?? [],
-                      }}
-                  />
-                ))}
-              </div>
+                    id: item.id,
+                    company: item.brand_name ?? "Berry Co.",
+                    name: item.name,
+                    description: item.description ?? undefined,
+                    shortDescription: item.short_description ?? undefined,
+                    price: item.price,
+                    salePercentage: item.sale_percentage,
+                    imageUrl: item.image_url ?? undefined,
+                    category: item.category_name ?? undefined,
+                    status: item.status,
+                    tags: item.tags ?? [],
+                  }}
+                />
+              ))}
+            </div>
 
             {products.length === 0 && (
               <p className="py-12 text-center text-sm font-semibold text-dark/60">
