@@ -18,7 +18,7 @@ export default function CheckoutForm({
   selectedCartItemIds,
   userEmail,
 }: {
-  cart: { items: CartItem[]; subtotal: number; itemCount: number }
+  cart: { items: CartItem[]; subtotal: number; itemCount: number; totalSavings?: number }
   selectedCartItemIds?: string[]
   userEmail: string
 }) {
@@ -36,9 +36,21 @@ export default function CheckoutForm({
   })
 
   const subtotal = useMemo(
-    () => cart.items.reduce((sum, item) => sum + item.unit_price_snapshot * item.quantity, 0),
+    () => cart.items.reduce((sum, item) => sum + Number(item.unit_price_snapshot) * item.quantity, 0),
     [cart.items]
   )
+
+  const totalSavings = useMemo(
+    () =>
+      cart.items.reduce((sum, item) => {
+        const originalPrice = Number(item.price ?? item.unit_price_snapshot)
+        const effectivePrice = Number(item.unit_price_snapshot)
+        const diff = Math.max(0, originalPrice - effectivePrice)
+        return sum + diff * item.quantity
+      }, 0),
+    [cart.items]
+  )
+
   const shipping = subtotal > 0 ? 120 : 0
   const total = subtotal + shipping
 
@@ -192,28 +204,38 @@ export default function CheckoutForm({
         </div>
 
         <div className="space-y-3 border-t border-dark/10 pt-4">
-          {cart.items.map((item) => (
-            <div key={item.id} className="flex items-center gap-3 rounded-2xl border border-dark/10 bg-paper px-3 py-2">
-              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-cream text-[10px] font-black text-dark/60">
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.product_name}
-                    className="h-full w-full object-contain"
-                  />
-                ) : (
-                  'ITEM'
-                )}
+          {cart.items.map((item) => {
+            const hasSale = item.price > item.unit_price_snapshot
+            return (
+              <div key={item.id} className="flex items-center gap-3 rounded-2xl border border-dark/10 bg-paper px-3 py-2">
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-cream text-[10px] font-black text-dark/60">
+                  {item.image_url ? (
+                    <img
+                      src={item.image_url}
+                      alt={item.product_name}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    'ITEM'
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-dark">{item.product_name}</p>
+                  <p className="text-xs font-semibold text-dark/60">Qty {item.quantity}</p>
+                </div>
+                <div className="text-right">
+                  {hasSale && (
+                    <p className="text-xs font-semibold text-dark/40 line-through">
+                      ₱{(item.price * item.quantity).toLocaleString('en-PH')}
+                    </p>
+                  )}
+                  <p className="text-sm font-black text-dark">
+                    ₱{(item.unit_price_snapshot * item.quantity).toLocaleString('en-PH')}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-dark">{item.product_name}</p>
-                <p className="text-xs font-semibold text-dark/60">Qty {item.quantity}</p>
-              </div>
-              <p className="text-sm font-black text-dark">
-                ₱{(item.unit_price_snapshot * item.quantity).toLocaleString('en-PH')}
-              </p>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="space-y-2 border-t border-dark/10 pt-4 text-sm font-semibold text-dark/70">
@@ -221,10 +243,19 @@ export default function CheckoutForm({
             <span>Subtotal</span>
             <span>₱{subtotal.toLocaleString('en-PH')}</span>
           </div>
+
+          {totalSavings > 0 && (
+            <div className="flex justify-between text-emerald-600 font-bold">
+              <span>Sale Savings</span>
+              <span>-₱{totalSavings.toLocaleString('en-PH')}</span>
+            </div>
+          )}
+
           <div className="flex justify-between">
             <span>Shipping</span>
             <span>₱{shipping.toLocaleString('en-PH')}</span>
           </div>
+
           <div className="flex justify-between border-t border-dark/10 pt-2 text-base font-black text-dark">
             <span>Total</span>
             <span>₱{total.toLocaleString('en-PH')}</span>
