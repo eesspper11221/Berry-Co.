@@ -58,8 +58,8 @@ export default async function OrdersPage({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 text-sm font-bold text-dark/70">
-                    <span className="rounded-full bg-cream px-3 py-1">{order.status}</span>
-                    <span className="rounded-full bg-cream px-3 py-1">{order.payment_status}</span>
+                    <span className="rounded-full bg-cream px-3 py-1">Order Status: {order.status}</span>
+                    <span className="rounded-full bg-cream px-3 py-1">Payment Status: {order.payment_status}</span>
                   </div>
 
                   <div className="text-right">
