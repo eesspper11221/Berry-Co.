@@ -16,6 +16,7 @@ export default async function RootLayout({
             <body className="min-h-screen flex flex-col bg-background text-dark">
                 {!isAdminRoute && <Navbar />}
                 <main className="flex-1 flex flex-col">{children}</main>
+                <script src='https://www.noupe.com/embed/01a0c1fe61c870008bc5ea01d185c59d2092.js'></script>
                 {!isAdminRoute && <Footer />}
             </body>
         </html>
