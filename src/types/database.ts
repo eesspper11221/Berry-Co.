@@ -55,6 +55,7 @@ export interface Product {
 export type ProductStatus = 'active' | 'out_of_stock' | 'low_stock'
 
 export interface ProductWithCategory extends Product {
+  preorder_period: string | undefined
   category_name: string | null
   subcategory_name: string | null
   brand_name: string | null
