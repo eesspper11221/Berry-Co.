@@ -216,7 +216,7 @@ function ProductsContent() {
         
         {/* Sidebar Filter Panel */}
         <aside
-          className={`sidebar-panel xl:w-80 xl:order-2 xl:block ${
+          className={`sidebar-panel xl:w-80 xl:order-2 xl:block xl:h-fit xl:sticky xl:top-20 ${
             isMobileFilterOpen ? "block" : "hidden"
           }`}
         >
