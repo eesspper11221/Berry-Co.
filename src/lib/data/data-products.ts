@@ -28,7 +28,6 @@ export function deriveProductStatus(stock: number, lowStockThreshold: number): P
   return 'active'
 }
 
-// 1. Update mapper to extract joined brand/series names and flatten tags
 function toProductWithCategory(
   product: any, // Using 'any' here temporarily to handle the joined Supabase format
   categoriesById: Map<string, Category>
@@ -38,15 +37,31 @@ function toProductWithCategory(
   const top = sub?.parent_id ? categoriesById.get(sub.parent_id) : undefined
 
   // Remove the nested joined objects so they don't pollute the final object
-  const { brands, series, product_tags, ...restProduct } = product;
+  const { brands, series, product_tags, ...restProduct } = product
+
+  // Compute display string for pre-order window if dates are present
+  const preorder_period =
+    product.preorder_start_date && product.preorder_end_date
+      ? `${new Date(product.preorder_start_date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'UTC',
+        })} – ${new Date(product.preorder_end_date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          timeZone: 'UTC',
+        })}`
+      : undefined
 
   return {
     ...restProduct,
+    preorder_period,
     category_name: top?.name ?? sub?.name ?? null,
     subcategory_name: sub?.name ?? leaf?.name ?? null,
-    brand_name: brands?.name ?? null,   
+    brand_name: brands?.name ?? null,
     series_name: series?.name ?? null,
-    shortDescription: product.short_description ?? null,  
+    shortDescription: product.short_description ?? null,
     // Map the junction table records into a flat array of strings
     tags: product_tags?.map((pt: any) => pt.tags?.name).filter(Boolean) ?? [],
     status: deriveProductStatus(product.stock, product.low_stock_threshold),
@@ -111,7 +126,7 @@ export async function getProducts(
   }
 
   // Filter 2: Tags filter (e.g., Pre-Order, Sale)
- if (tags.length > 0) {
+  if (tags.length > 0) {
     products = products.filter((p) =>
       tags.every((tag) => (p.tags ?? []).includes(tag))
     )
@@ -130,7 +145,6 @@ export async function getProductById(id: string): Promise<ProductWithCategory | 
   const supabase = await createClient()
 
   const [{ data, error }, categories] = await Promise.all([
-    // 3. Expand .select() here as well
     supabase
       .from('products')
       .select('*, brands(name), series(name), product_tags(tags(name))')

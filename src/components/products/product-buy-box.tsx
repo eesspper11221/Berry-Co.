@@ -14,6 +14,7 @@ type BuyBoxProps = {
   status: "In Stock" | "Pre-orders Open" | "Out of Stock" | "Sold Out" | string;
   tag?: string;
   preorderPeriod?: string;
+  releaseDate?: string | null;
   initialInWishlist?: boolean;
 };
 
@@ -26,6 +27,7 @@ export default function ProductBuyBox({
   salePercentage,
   status,
   preorderPeriod,
+  releaseDate,
   initialInWishlist = false,
 }: BuyBoxProps) {
   const router = useRouter();
@@ -108,7 +110,10 @@ export default function ProductBuyBox({
     status.toLowerCase().includes("out of stock") ||
     status.toLowerCase().includes("sold out");
 
-  const isPreOrder = status.toLowerCase().includes("pre-order");
+  const isPreOrder =
+    status.toLowerCase().includes("pre-order") ||
+    status.toLowerCase().includes("preorder") ||
+    Boolean(preorderPeriod);
 
   // Status Text Color Formatting
   const getStatusColor = () => {
@@ -116,6 +121,18 @@ export default function ProductBuyBox({
     if (isPreOrder) return "text-brand";
     return "text-emerald-700";
   };
+
+  // 📅 Format Release Date safely without timezone shift
+  const formattedReleaseDate = releaseDate
+    ? new Date(
+        releaseDate.includes("T") ? releaseDate : `${releaseDate}T00:00:00`
+      ).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
 
   return (
     <div className="rounded-4xl bg-[#F4ECE1] p-6 shadow-xs border border-dark/10 space-y-5">
@@ -160,15 +177,30 @@ export default function ProductBuyBox({
         )}
       </div>
 
-      {/* 📅 Pre-order Period Banner */}
-      {isPreOrder && preorderPeriod && (
-        <div className="rounded-2xl bg-cream p-3 text-center text-xs text-dark/80 border border-dark/5">
-          <p className="font-extrabold uppercase text-[10px] tracking-wider text-dark/60">
-            Pre-order Period
-          </p>
-          <p className="text-[11px] font-bold text-dark mt-0.5">
-            {preorderPeriod}
-          </p>
+      {/* 📅 Pre-Order & Release Schedule Banner */}
+      {(preorderPeriod || releaseDate) && (
+        <div className="rounded-2xl bg-cream p-3.5 text-center text-xs text-dark/80 border border-dark/5 space-y-2.5">
+          {preorderPeriod && (
+            <div>
+              <p className="font-extrabold uppercase text-[10px] tracking-wider text-dark/50">
+                Pre-order Period
+              </p>
+              <p className="text-[12px] font-bold text-dark mt-0.5">
+                {preorderPeriod}
+              </p>
+            </div>
+          )}
+
+          {releaseDate && formattedReleaseDate && (
+            <div className={preorderPeriod ? "pt-2 border-t border-dark/10" : ""}>
+              <p className="font-extrabold uppercase text-[10px] tracking-wider text-brand">
+                Estimated Release Date
+              </p>
+              <p className="text-[12px] font-black text-dark mt-0.5">
+                {formattedReleaseDate}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

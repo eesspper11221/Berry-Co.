@@ -90,6 +90,19 @@ export default async function ProductDetailPage({ params }: PageProps) {
               salePercentage={product.sale_percentage}
               status={status}
               tag={product.category_name ?? 'Berry Co.'}
+              releaseDate={product.release_date}
+              preorderPeriod={
+                product.preorder_start_date && product.preorder_end_date
+                  ? `${new Date(product.preorder_start_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })} – ${new Date(product.preorder_end_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}`
+                  : product.preorder_period
+              }
               initialInWishlist={initialInWishlist}
             />
           </div>

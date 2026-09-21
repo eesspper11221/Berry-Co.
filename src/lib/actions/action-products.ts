@@ -132,7 +132,9 @@ export async function createProduct(
   const tagError = await syncProductTags(supabase, data.id, tagIds)
   if (tagError) return { error: tagError.message }
 
+  // Revalidate Admin and Public Pages
   revalidatePath('/admin/products')
+  revalidatePath('/products')
   redirect(`/admin/products/${data.id}`)
 }
 
@@ -195,8 +197,11 @@ export async function updateProduct(
   const tagError = await syncProductTags(supabase, id, tagIds)
   if (tagError) return { error: tagError.message }
 
+  // Revalidate Admin and Public Pages
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${id}`)
+  revalidatePath('/products')
+  revalidatePath(`/products/${id}`)
   return { error: null }
 }
 
@@ -206,6 +211,7 @@ export async function deleteProduct(id: string) {
   const { error } = await supabase.from('products').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin/products')
+  revalidatePath('/products')
   redirect('/admin/products')
 }
 
@@ -235,6 +241,8 @@ export async function adjustStock(id: string, delta: number) {
 
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${id}`)
+  revalidatePath('/products')
+  revalidatePath(`/products/${id}`)
   return { error: null, stock: nextStock }
 }
 
@@ -260,5 +268,7 @@ export async function setStock(
 
   revalidatePath('/admin/products')
   revalidatePath(`/admin/products/${id}`)
+  revalidatePath('/products')
+  revalidatePath(`/products/${id}`)
   return { error: null }
 }
