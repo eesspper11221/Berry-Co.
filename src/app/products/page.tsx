@@ -212,7 +212,7 @@ function ProductsContent() {
         </button>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-6">
+      <div className="flex flex-col xl:flex-row gap-6 items-start">
         
         {/* Sidebar Filter Panel */}
         <aside
