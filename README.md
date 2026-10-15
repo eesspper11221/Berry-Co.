@@ -30,11 +30,33 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+PAYMONGO_SECRET_KEY=sk_test_your_test_secret_key
+PAYMONGO_WEBHOOK_SECRET=your_test_webhook_signing_secret
+# Optional: HTTPS Universal/App Link handled by your mobile app
+PAYMONGO_APP_RETURN_URL=https://your-domain.example/payment-return
 ```
 
 For Railway, add these variables in the service's Variables tab, change
 `NEXT_PUBLIC_SITE_URL` to the Railway public URL, save them, and redeploy.
 `.env.local` is intentionally ignored by GitHub and is not deployed.
+
+PayMongo checkout is intentionally restricted to test secret keys (`sk_test_`)
+and uses PayMongo's hosted checkout for card and GCash payments. The public key
+is not needed for this server-created checkout flow. In the PayMongo test
+dashboard, configure a webhook for `checkout_session.payment.paid` pointing to
+`/api/webhooks/paymongo`, then set its signing secret as
+`PAYMONGO_WEBHOOK_SECRET`. For local testing, expose the local webhook endpoint
+through a trusted HTTPS tunnel and use that public URL in the test dashboard.
+Apply `supabase/migrations/014_paymongo_checkout.sql` to your Supabase project
+before using checkout.
+
+Website checkouts return to the same origin that initiated checkout and then
+open the home page after payment; cancelling returns to `/orders`. A separate
+mobile client using `/api/checkout` must send
+`paymentPlatform: "app"` and configure `PAYMONGO_APP_RETURN_URL` to an HTTPS
+Universal/App Link registered by that app. The app must handle the `payment`
+and `order` query parameters. This repository contains the website backend,
+not the mobile app that registers and handles that link.
 
 ## Learn More
 

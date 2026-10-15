@@ -4,7 +4,7 @@ import type { ShippingAddress } from './db'
 export interface CheckoutInput {
   userId: string; // checkout requires a logged-in user (guests must sign in/up first)
   shippingAddress: ShippingAddress;
-  paymentMethod: string; // e.g. "card", "gcash", "cod" — left generic on purpose
+  paymentMethod: 'card' | 'gcash' | 'cod';
   shippingFee?: number;
   selectedCartItemIds?: string[];
 }
@@ -53,4 +53,14 @@ export async function checkout(input: CheckoutInput) {
 
   if (error || !result) throw new Error(error?.message ?? 'Unable to create order.')
   return result.order
+}
+
+export async function attachPayMongoSession(orderId: string, sessionId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('attach_paymongo_checkout_session', {
+    p_order_id: orderId,
+    p_session_id: sessionId,
+  })
+
+  if (error) throw new Error(error.message)
 }

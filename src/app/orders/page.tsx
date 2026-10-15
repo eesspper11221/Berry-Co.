@@ -7,7 +7,7 @@ import PaymentStatusBadge from '@/components/storefront/payment-status-badge'
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cancelled?: string }>
+  searchParams: Promise<{ cancelled?: string; payment?: string; order?: string }>
 }) {
   const supabase = await createClient()
   const {
@@ -17,7 +17,8 @@ export default async function OrdersPage({
   if (!user) redirect('/login')
 
   const orders = await getOrdersForUser(user.id)
-  const wasCancelled = (await searchParams).cancelled === '1'
+  const query = await searchParams
+  const wasCancelled = query.cancelled === '1'
 
   return (
     <main className="page-shell">
@@ -26,6 +27,17 @@ export default async function OrdersPage({
           <p className="text-xs font-black uppercase tracking-[0.2em] text-brand">Account</p>
           <h1 className="mt-2 text-4xl font-black text-dark">Order history</h1>
         </div>
+
+        {query.payment === 'success' && (
+          <div className="mb-5 rounded-2xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700" role="status">
+            You returned from PayMongo{query.order ? ` for order ${query.order}` : ''}. Your payment status will update after PayMongo confirms it.
+          </div>
+        )}
+        {query.payment === 'cancelled' && (
+          <div className="mb-5 rounded-2xl border border-amber-600/30 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800" role="status">
+            Payment was not completed{query.order ? ` for order ${query.order}` : ''}. The order remains pending.
+          </div>
+        )}
 
         {wasCancelled && (
           <div className="mb-5 rounded-2xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700" role="status">

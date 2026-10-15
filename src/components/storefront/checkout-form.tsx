@@ -59,6 +59,7 @@ export default function CheckoutForm({
           country: 'PH',
         },
         paymentMethod: form.paymentMethod,
+        paymentPlatform: 'web',
         shippingFee: shipping,
         selectedCartItemIds,
       }
@@ -77,6 +78,10 @@ export default function CheckoutForm({
 
       window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: 0 } }))
       window.dispatchEvent(new CustomEvent('orders-updated', { detail: { delta: 1 } }))
+      if (data.checkoutUrl) {
+        window.location.assign(data.checkoutUrl)
+        return
+      }
       router.push('/orders')
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'Checkout failed.')
@@ -181,7 +186,9 @@ export default function CheckoutForm({
           disabled={isSubmitting}
           className="w-full rounded-full bg-brand px-5 py-3 text-sm font-black text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? 'Processing...' : `Pay ₱${total.toLocaleString('en-PH')}`}
+          {isSubmitting
+            ? 'Processing...'
+            : `${form.paymentMethod === 'cod' ? 'Place order' : 'Continue to payment'} • ₱${total.toLocaleString('en-PH')}`}
         </button>
       </form>
 
