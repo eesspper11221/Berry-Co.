@@ -56,6 +56,34 @@ export async function POST(req: NextRequest) {
       } else {
         const requestOrigin = req.headers.get("origin");
         const appOrigin = new URL(req.url).origin;
+        const allowedOrigins = new Set<string>();
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+        const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN;
+
+        if (siteUrl) {
+          try {
+            const configuredUrl = new URL(siteUrl);
+            if (
+              configuredUrl.protocol !== "https:" &&
+              (process.env.NODE_ENV === "production" || configuredUrl.protocol !== "http:")
+            ) {
+              throw new Error("Unsupported URL protocol.");
+            }
+            allowedOrigins.add(configuredUrl.origin);
+          } catch {
+            return NextResponse.json(
+              { error: "NEXT_PUBLIC_SITE_URL must be a valid URL." },
+              { status: 500 }
+            );
+          }
+        }
+        if (railwayDomain) {
+          allowedOrigins.add(new URL(`https://${railwayDomain}`).origin);
+        }
+        if (process.env.NODE_ENV !== "production") {
+          allowedOrigins.add(appOrigin);
+        }
+
         if (requestOrigin) {
           let origin: URL;
           try {
@@ -63,12 +91,18 @@ export async function POST(req: NextRequest) {
           } catch {
             return NextResponse.json({ error: "Invalid request origin." }, { status: 400 });
           }
-          if (origin.origin !== appOrigin) {
+          if (!allowedOrigins.has(origin.origin)) {
             return NextResponse.json({ error: "Checkout must be started from this website." }, { status: 403 });
           }
+          returnUrl = new URL("/", origin.origin);
+        } else if (siteUrl) {
+          returnUrl = new URL("/", siteUrl);
+        } else if (railwayDomain) {
+          returnUrl = new URL("/", `https://${railwayDomain}`);
+        } else {
+          returnUrl = new URL("/", appOrigin);
         }
-        returnUrl = new URL("/", appOrigin);
-        cancelBaseUrl = new URL("/orders", appOrigin).toString();
+        cancelBaseUrl = new URL("/orders", returnUrl.origin).toString();
       }
       successBaseUrl = returnUrl.toString();
       cancelBaseUrl ??= returnUrl.toString();
